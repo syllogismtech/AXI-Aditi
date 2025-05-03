@@ -37,7 +37,7 @@ class axi_read_driver extends uvm_driver #(axi_read_xtn);
       foreach (int i in [0:xtn.arlen]) begin // 0 to burst length upto which loop should iterate
         @(posedge vif.clk);
 
-     case (case_select)
+     case (case_sel)
         // CASE 1: Drive rvalid after 3 cycles only when rready is high
           1: begin
             wait (vif.rready);                // Wait for master to be ready  
