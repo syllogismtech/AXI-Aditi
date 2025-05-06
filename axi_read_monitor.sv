@@ -1,3 +1,4 @@
+// coverpoints are not triggered on the basis of clock, but on the basis of events
 class axi_read_monitor extends uvm_monitor;
 
   virtual axi_if vif;
