@@ -14,16 +14,16 @@
     covergroup covgrp;
     option.per_instance = 1;
 
-        // Address coverage (assume 32-bit address space, split into ranges)
+    // each slave can have 4kb of address 
         coverpoint txn.addr {
-          bins low     = {[32'h0000_0000 : 32'h0000_0FFF]};
-          bins mid     = {[32'h0000_1000 : 32'h0000_1FFF]};
-          bins high    = {[32'h0000_2000 : 32'h0000_FFFF]};
-          bins invalid = default;
+            bins slave0 = {[32'h0000_0000 : 32'h0000_0FFF]}; // 0 to 4095 bytes
+            bins slave1 = {[32'h0000_1000 : 32'h0000_1FFF]}; // 4096 to 8191 bytes
+            bins slave2 = {[32'h0000_2000 : 32'h0000_2FFF]}; // 8192 to 12287 bytes
+            bins slave3 = {[32'h0000_3000 : 32'h0000_3FFF]}; // 12288 to 16383 bytes 
         }
         
         // Burst length (ARLEN / AWLEN): valid values [0:15] means 1 to 16 beats
-        coverpoint txn.burst_len {
+        coverpoint txn.len {
           bins single      = {0};
           bins short_burst = {[1:3]};
           bins med_burst   = {[4:7]};
@@ -31,7 +31,7 @@
         }
         
         // Burst type (ARBURST / AWBURST)
-        coverpoint txn.burst_type {
+        coverpoint txn.burst {
           bins FIXED = {2'b00};
           bins INCR  = {2'b01};
           bins WRAP  = {2'b10};
@@ -45,29 +45,15 @@
           bins DECERR = {2'b11};
         }
         
-        // Master ID coverage
-        coverpoint txn.master_id {
-          bins master_0 = {0};
-          bins master_1 = {1};
-        }
-        
-        // Slave ID coverage (assume 4 slaves: 0-3)
-        coverpoint txn.slave_id {
-          bins slave_0 = {0};
-          bins slave_1 = {1};
-          bins slave_2 = {2};
-          bins slave_3 = {3};
-        }
-        
         // Read or Write Channel type
-        coverpoint txn.cmd_type {
-          bins READ  = {READ};
-          bins WRITE = {WRITE};
+        coverpoint txn.is_read {
+            bins READ  = {1'b1};
+            bins WRITE = {1'b0};
         }
         
         // Optional: Cross coverage
-        BURST_LEN_X_TYPE: cross burst_len, burst_type;
-        MASTER_SLAVE_ACCESS: cross master_id, slave_id;
+        cross txn.is_read, txn.burst;
+        cross txn.len, txn.is_read;
     endgroup : covgrp
 
   //-------------------------------------------------------------------------
@@ -83,7 +69,7 @@
   
   function void report_phase(uvm_phase phase);
   super.report_phase(phase);
-  `uvm_info(get_type_name(), $sformatf("Total AXI Coverage = %0.2f%%", cov), UVM_MEDIUM)
+      `uvm_info(get_type_name(), $sformatf("Total AXI Coverage = %0.2f%%", cov), UVM_LOW)
   endfunction
   
   endclass : axi_coverage
